@@ -7,9 +7,9 @@ do
     if cargo download --extract --output=/root/build $crate
     then
         cd /root/build
-        cargo +miri update --color=always
-        cargo +miri miri test --no-run --color=always
-        /usr/bin/time -v timeout $TEST_TIMEOUT cargo +miri miri test --color=always --no-fail-fast -- --test-threads=2
+        cargo +nightly update --color=always
+        cargo +nightly test -Zbuild-std --target=x86_64-unknown-linux-gnu --no-run --color=always
+        /usr/bin/time -v timeout $TEST_TIMEOUT cargo +nightly test -Zbuild-std --target=x86_64-unknown-linux-gnu --color=always --no-fail-fast
         cat Cargo.lock
         echo $TEST_END_DELIMITER
     fi

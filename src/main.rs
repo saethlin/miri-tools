@@ -179,9 +179,6 @@ fn main() -> Result<()> {
             .template("[{elapsed_precise}/{duration_precise}] {wide_bar} {pos}/{len}"),
     );
 
-    let miri_flags = "MIRIFLAGS=-Zmiri-disable-isolation -Zmiri-ignore-leaks \
-                     -Zmiri-panic-on-unsupported";
-
     // Reverse the sort order, most-downloaded last
     let crates = crates.into_iter().rev().collect::<Vec<_>>();
     let crates = Arc::new(Mutex::new(crates));
@@ -201,21 +198,20 @@ fn main() -> Result<()> {
                 "--interactive",
                 "--cpu-shares=2",
                 "--env",
-                "RUSTFLAGS=-Zrandomize-layout --cap-lints allow -Copt-level=0 -Cdebuginfo=0",
+                "RUSTFLAGS=--cap-lints allow -Copt-level=0 -Cdebuginfo=0 -Zsanitizer=address",
                 "--env",
-                "RUSTDOCFLAGS=--color=always",
+                "RUSTDOCFLAGS=--color=always -Copt-level=0 -Cdebuginfo=0 -Zsanitizer=address",
+                "--env",
+                "ASAN_OPTIONS=detect_leaks=0 detect_stack_use_after_return=1",
                 "--env",
                 "CARGO_INCREMENTAL=0",
                 "--env",
                 "RUST_BACKTRACE=0",
                 "--env",
-                miri_flags,
-                "--env",
                 "TEST_TIMEOUT=900",
                 "--env",
                 &format!("TEST_END_DELIMITER={}", test_end_delimiter),
-                &format!("--memory={}g", args.memory_limit_gb),
-                "miri:latest",
+                "runner:latest",
             ])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
